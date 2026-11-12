@@ -10,7 +10,7 @@
 [![Get keys](https://img.shields.io/badge/get%20keys-moonetix.com-004ABB)](https://moonetix.com/register?from=github-rewards-site-starter)
 [![Maintained by Moonetix](https://img.shields.io/badge/maintained%20by-Moonetix-004ABB)](https://moonetix.com)
 
-A rewards site pays users in its own currency for completed offers and keeps a share of what the advertiser pays. [Moonetix](https://moonetix.com) is a pay-per-result affiliate network that supplies those offers through its offerwall. This starter is plain PHP 8 with PDO SQLite: no framework, no Composer, about 1,100 lines you can read in an afternoon and run on any PHP host.
+A rewards site pays users in its own currency for completed offers and keeps a share of what the advertiser pays. [Moonetix](https://moonetix.com) is an affiliate network that supplies those offers through its offerwall. This starter is plain PHP 8 with PDO SQLite: no framework, no Composer, about 1,100 lines you can read in an afternoon and run on any PHP host.
 
 > **Get your App ID and keys: sign up free at https://moonetix.com/register?from=github-rewards-site-starter**
 
