@@ -94,18 +94,21 @@ function request_redeem(int $userId, int $amountMicro, string $method, string $d
     });
 }
 
-/** Admin decision. Paid only records that you paid by hand; rejected gives the coins back. */
-function decide_redeem(int $requestId, string $decision, string $note): bool
+/**
+ * Admin decision. Paid only records that you paid by hand; rejected gives the coins back.
+ * The admin's user ID is stored with the decision, so it can be traced later.
+ */
+function decide_redeem(int $requestId, string $decision, string $note, int $adminId): bool
 {
-    return in_transaction(function (PDO $pdo) use ($requestId, $decision, $note): bool {
+    return in_transaction(function (PDO $pdo) use ($requestId, $decision, $note, $adminId): bool {
         $st = $pdo->prepare("SELECT user_id, amount_micro FROM redeem_requests WHERE id = ? AND status = 'pending'");
         $st->execute([$requestId]);
         $req = $st->fetch();
         if (!$req || !in_array($decision, ['paid', 'rejected'], true)) {
             return false;
         }
-        $pdo->prepare('UPDATE redeem_requests SET status = ?, admin_note = ?, decided_at = ? WHERE id = ?')
-            ->execute([$decision, mb_substr($note, 0, 500), time(), $requestId]);
+        $pdo->prepare('UPDATE redeem_requests SET status = ?, admin_note = ?, decided_at = ?, decided_by = ? WHERE id = ?')
+            ->execute([$decision, mb_substr($note, 0, 500), time(), $adminId, $requestId]);
         if ($decision === 'rejected') {
             change_balance($pdo, (int)$req['user_id'], (int)$req['amount_micro'], 'redeem_refund', 'redeem:' . $requestId, $note);
         }

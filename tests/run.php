@@ -102,8 +102,19 @@ check($r['ok'] === true, 'redeem: request accepted');
 check(request_redeem(1, 10 * MICRO, 'PayPal', 'u@example.com')['ok'] === false, 'redeem: one pending request at a time');
 check(apply_postback('u_1', 1, 150000000, 2, 'Offer') === 'reversed', 'unit: reversal after redeem');
 check((int)db()->query('SELECT balance_micro FROM users WHERE id = 1')->fetchColumn() === -120 * MICRO, 'reversal can take the balance below zero');
-check(decide_redeem($r['id'], 'rejected', 'Reversed offer') && !decide_redeem($r['id'], 'paid', ''), 'admin: reject once, then nothing');
+check(decide_redeem($r['id'], 'rejected', 'Reversed offer', 1) && !decide_redeem($r['id'], 'paid', '', 1), 'admin: reject once, then nothing');
 check((int)db()->query('SELECT balance_micro FROM users WHERE id = 1')->fetchColumn() === 0, 'reject refunds the request');
+check((int)db()->query('SELECT decided_by FROM redeem_requests WHERE id = ' . (int)$r['id'])->fetchColumn() === 1, 'admin: the decision stores who made it');
+
+$old = new PDO('sqlite:' . $tmp . '/old.sqlite', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+$old->exec("CREATE TABLE redeem_requests (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, amount_micro INTEGER NOT NULL,
+    method TEXT NOT NULL, destination TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', admin_note TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL, decided_at INTEGER)");
+$old->exec("INSERT INTO redeem_requests (user_id, amount_micro, method, destination, created_at) VALUES (1, 5, 'PayPal', 'x', 1)");
+migrate($old);
+migrate($old);
+$row = $old->query('SELECT * FROM redeem_requests')->fetchAll(PDO::FETCH_ASSOC);
+check(count($row) === 1 && array_key_exists('decided_by', $row[0]) && $row[0]['decided_by'] === null, 'older database gains the decided_by column, rows kept');
 
 // ---------------------------------------------------------------- Part 2: over HTTP
 
@@ -272,6 +283,7 @@ $page = $admin->get('/admin.php');
 check($page['status'] === 200 && str_contains($page['body'], 'alice@example.com') && str_contains($page['body'], 'Reversals: 1'), 'admin sees the request with checks');
 $r = $admin->post('/admin.php', ['id' => '1', 'decision' => 'paid', 'note' => 'Sent']);
 check($r['status'] === 303 && str_contains($admin->get('/admin.php')['body'], 'No pending requests'), 'admin marks it paid');
+check(str_contains($admin->get('/admin.php')['body'], '<td>admin@example.com</td>'), 'admin list shows who decided');
 check(str_contains($alice->get('/redeem.php')['body'], 'Paid'), 'user sees Paid');
 check(balance_of($alice) === '16.60956 Coins', 'paying does not change the balance again');
 

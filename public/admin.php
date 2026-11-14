@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int)($_POST['id'] ?? 0);
     $decision = (string)($_POST['decision'] ?? '');
     $note = trim((string)($_POST['note'] ?? ''));
-    $ok = decide_redeem($id, $decision, $note);
+    $ok = decide_redeem($id, $decision, $note, (int)$user['id']);
     flash($ok ? "Request #$id marked as $decision." : "Request #$id was already decided.");
     redirect('/admin.php');
 }
@@ -29,8 +29,8 @@ $pending = db()->query("
            (SELECT COUNT(*) FROM redeem_requests p WHERE p.user_id = u.id AND p.status = 'paid') AS paid_before
     FROM redeem_requests r JOIN users u ON u.id = r.user_id
     WHERE r.status = 'pending' ORDER BY r.id")->fetchAll();
-$recent = db()->query("SELECT r.id, r.amount_micro, r.method, r.status, r.decided_at, u.email
-                       FROM redeem_requests r JOIN users u ON u.id = r.user_id
+$recent = db()->query("SELECT r.id, r.amount_micro, r.method, r.status, r.decided_at, u.email, a.email AS decided_by_email
+                       FROM redeem_requests r JOIN users u ON u.id = r.user_id LEFT JOIN users a ON a.id = r.decided_by
                        WHERE r.status <> 'pending' ORDER BY r.decided_at DESC LIMIT 25")->fetchAll();
 
 page_start('Admin', 'wide');
@@ -75,11 +75,12 @@ page_start('Admin', 'wide');
 <h2>Recently decided</h2>
 <?php if (!$recent): ?><p class="muted">Nothing yet.</p><?php else: ?>
 <table>
-  <thead><tr><th>#</th><th>User</th><th class="num">Amount</th><th>Method</th><th>Status</th><th>Decided</th></tr></thead>
+  <thead><tr><th>#</th><th>User</th><th class="num">Amount</th><th>Method</th><th>Status</th><th>Decided</th><th>By</th></tr></thead>
   <tbody>
   <?php foreach ($recent as $r): ?>
     <tr><td><?= (int)$r['id'] ?></td><td><?= e($r['email']) ?></td><td class="num"><?= e(format_amount((int)$r['amount_micro'])) ?></td>
-      <td><?= e($r['method']) ?></td><td><?= e(ucfirst($r['status'])) ?></td><td><?= e(gmdate('Y-m-d H:i', (int)$r['decided_at'])) ?></td></tr>
+      <td><?= e($r['method']) ?></td><td><?= e(ucfirst($r['status'])) ?></td><td><?= e(gmdate('Y-m-d H:i', (int)$r['decided_at'])) ?></td>
+      <td><?= e($r['decided_by_email']) ?></td></tr>
   <?php endforeach ?>
   </tbody>
 </table>

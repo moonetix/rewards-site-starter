@@ -86,7 +86,7 @@ Set your conversion rate and user split in the Moonetix dashboard (Offerwalls, y
 3. **Postback** (`postback.php`): reads the raw query string so a repeated `tx` cannot slip through (PHP's `$_GET` keeps the last copy), checks the HMAC with `hash_equals` first, then credits or reverses inside `BEGIN IMMEDIATE`. 403 for a bad hash, 400 for signed nonsense, 200 after the commit, 500 on errors so Moonetix retries.
 4. **History** (`history.php`): every balance change from the ledger, including reversals and redeem requests.
 5. **Redeem** (`redeem.php`): minimum, one pending request per user, only coins past the hold. The amount leaves the balance at once.
-6. **Admin** (`admin.php`): pending requests with the checks that matter before paying. Pay through your provider, then mark the request paid. Rejecting returns the coins.
+6. **Admin** (`admin.php`): pending requests with the checks that matter before paying. Pay through your provider, then mark the request paid. Rejecting returns the coins. Each decision stores which admin made it.
 7. **Legal pages** (`terms.php`, `privacy.php`): placeholders that already name the points a rewards site needs: age, one account per person, reversals, holds, and that offerwall data goes to Moonetix. Replace them with your own text before launch.
 
 | Path | Purpose |
@@ -114,7 +114,7 @@ Set your conversion rate and user split in the Moonetix dashboard (Offerwalls, y
 php tests/run.php
 ```
 
-The runner calls the code directly, then starts the site on PHP's built-in server with 4 workers and drives it over HTTP with curl: 71 checks, including CSRF and cross-origin posts, the one-account rule, the login rate limit, the signed iframe link, credits, retries, decimals, 20 parallel copies of one postback, reversals before and after redeeming, a reversal before its credit, tampered and repeated postbacks, the hold, redeem rules, admin access, paid and rejected requests, logout, and a server log free of PHP warnings.
+The runner calls the code directly, then starts the site on PHP's built-in server with 4 workers and drives it over HTTP with curl: 74 checks, including CSRF and cross-origin posts, the one-account rule, the login rate limit, the signed iframe link, credits, retries, decimals, 20 parallel copies of one postback, reversals before and after redeeming, a reversal before its credit, tampered and repeated postbacks, the hold, redeem rules, admin access, paid and rejected requests and who decided them, logout, and a server log free of PHP warnings.
 
 To check a deployed copy from the outside, run [postback-tester](https://github.com/moonetix/postback-tester). It signs postbacks the way Moonetix does and sends a credit and its retry, three kinds of reversal, four forged or unsigned postbacks and five parallel copies of one credit. Its transaction IDs start with `test_`, so set `MOONETIX_CREDIT_TEST_POSTBACKS=true` while it runs and pass your own account ID:
 

@@ -73,7 +73,8 @@ function migrate(PDO $pdo): void
             status       TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'rejected')),
             admin_note   TEXT NOT NULL DEFAULT '',
             created_at   INTEGER NOT NULL,
-            decided_at   INTEGER
+            decided_at   INTEGER,
+            decided_by   INTEGER REFERENCES users (id)
         );
         CREATE INDEX IF NOT EXISTS redeem_status ON redeem_requests (status, id);
 
@@ -83,6 +84,18 @@ function migrate(PDO $pdo): void
             hits         INTEGER NOT NULL
         );
         SQL);
+
+    // Databases created before decisions stored who made them get the column here.
+    $columns = array_column($pdo->query('PRAGMA table_info(redeem_requests)')->fetchAll(PDO::FETCH_ASSOC), 'name');
+    if (!in_array('decided_by', $columns, true)) {
+        try {
+            $pdo->exec('ALTER TABLE redeem_requests ADD COLUMN decided_by INTEGER REFERENCES users (id)');
+        } catch (PDOException $e) {
+            if (!str_contains($e->getMessage(), 'duplicate column')) { // another worker added it first
+                throw $e;
+            }
+        }
+    }
 }
 
 /** Runs $fn inside BEGIN IMMEDIATE, so concurrent writers wait instead of interleaving. */
