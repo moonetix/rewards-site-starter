@@ -7,12 +7,11 @@
 [![PHP 8.1+](https://img.shields.io/badge/PHP-8.1%2B-777bb4)](https://moonetix.com/industries/rewards-sites)
 [![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen)](#run-it)
 [![Guide](https://img.shields.io/badge/academy-start%20a%20rewards%20site-004ABB)](https://moonetix.com/academy/monetization/start-a-rewards-website)
-[![Get keys](https://img.shields.io/badge/get%20keys-moonetix.com-004ABB)](https://moonetix.com/register?from=github-rewards-site-starter)
 [![Maintained by Moonetix](https://img.shields.io/badge/maintained%20by-Moonetix-004ABB)](https://moonetix.com)
 
 A rewards site pays users in its own currency for completed offers and keeps a share of what the advertiser pays. [Moonetix](https://moonetix.com) is an affiliate network that supplies those offers through its offerwall. This starter is plain PHP 8 with PDO SQLite: no framework, no Composer, about 1,100 lines you can read in an afternoon and run on any PHP host.
 
-> **Get your App ID and keys: sign up free at https://moonetix.com/register?from=github-rewards-site-starter**
+> To run it you need your Moonetix App ID and keys: see [Get your keys](#get-your-keys).
 
 ## What it already handles
 
@@ -155,9 +154,9 @@ With Moonetix:
 - Moonetix for [rewards sites](https://moonetix.com/industries/rewards-sites) and [websites](https://moonetix.com/integrations/website)
 - Tools: [rewards site profit calculator](https://moonetix.com/tools/rewards-site-profit-calculator), [virtual currency calculator](https://moonetix.com/tools/virtual-currency-calculator)
 
-## Start earning
+## Get your keys
 
-**Get your App ID and keys: sign up free at https://moonetix.com/register?from=github-rewards-site-starter**
+Get your App ID and keys: sign up free at https://moonetix.com/register?from=github-rewards-site-starter
 
 Every publisher application is reviewed by hand. Once your site is approved, set your currency and rate, paste the keys into `.env`, and send a test postback.
 
